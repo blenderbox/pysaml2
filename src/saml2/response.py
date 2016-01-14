@@ -494,6 +494,7 @@ class AuthnResponse(StatusResponse):
 
     def loads(self, xmldata, decode=True, origxml=None):
         self._loads(xmldata, decode, origxml)
+        self.allow_unsolicited = True
 
         if self.asynchop:
             if self.in_response_to in self.outstanding_queries:
