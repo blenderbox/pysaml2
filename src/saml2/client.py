@@ -79,7 +79,7 @@ class Saml2Client(Base):
 
         return reqid, info
 
-    def global_logout(self, name_id, reason="", expire=None, sign=None):
+    def global_logout(self, name_id, reason="", expire=None, sign=None, **kwargs):
         """ More or less a layer of indirection :-/
         Bootstrapping the whole thing by finding all the IdPs that should
         be notified.
@@ -104,10 +104,10 @@ class Saml2Client(Base):
 
         # find out which IdPs/AAs I should notify
         entity_ids = self.users.issuers_of_info(name_id)
-        return self.do_logout(name_id, entity_ids, reason, expire, sign)
+        return self.do_logout(name_id, entity_ids, reason, expire, sign, **kwargs)
 
     def do_logout(self, name_id, entity_ids, reason, expire, sign=None,
-                  expected_binding=None):
+                  expected_binding=None, **kwargs):
         """
 
         :param name_id: Identifier of the Subject (a NameID instance)
@@ -151,7 +151,7 @@ class Saml2Client(Base):
                 logger.info("destination to provider: %s" % destination)
                 req_id, request = self.create_logout_request(
                     destination, entity_id, name_id=name_id, reason=reason,
-                    expire=expire)
+                    expire=expire, session_indexes=kwargs['session_index'])
 
                 #to_sign = []
                 if binding.startswith("http://"):
@@ -168,7 +168,7 @@ class Saml2Client(Base):
                 relay_state = self._relay_state(req_id)
 
                 http_info = self.apply_binding(binding, srequest, destination,
-                                               relay_state)
+                                               relay_state, sign, **kwargs)
 
                 if binding == BINDING_SOAP:
                     response = self.send(**http_info)
